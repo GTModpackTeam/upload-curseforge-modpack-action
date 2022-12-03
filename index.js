@@ -26,24 +26,13 @@ const FormData = require('form-data');
         console.log(`Modpack path set to '${modpackPath}'`);
         console.log(`Modpack server path set to '${modpackServerPath}'`);
 
-        let gameVersionID;
-        if (gameVersion) {
-            core.startGroup('Fetching game versions');
-            const versions = await getVersions(apiToken);
-            const gameVersionObject = versions.find(e => e.name === gameVersion || e.slug === gameVersion);
-            if (gameVersionObject) {
-                gameVersionID = gameVersionObject.id;
-            }
-            core.endGroup();
-        }
-
         core.startGroup('Upload Modpack');
 
         const fileID = await upload(projectID, apiToken, modpackPath, {
             changelog: changelog,
             changelogType: changelogFormat,
             displayName: displayName,
-            gameVersions: gameVersionID ? [gameVersionID] : [],
+            gameVersions: gameVersion ? [gameVersion] : [],
             releaseType: releaseType
         });
 
@@ -88,15 +77,4 @@ async function upload(projectID, apiToken, file, metadata) {
     }
 
     return response.id;
-}
-
-async function getVersions(apiToken) {
-    const res = await fetch('https://minecraft.curseforge.com/api/game/versions', { method: 'GET', headers: { 'X-Api-Token': apiToken } });
-
-    if (!res.ok) {
-        core.setFailed(`Getting versions returned status code ${res.status}`);
-        process.exit(1704);
-    }
-
-    return await res.json();
 }
